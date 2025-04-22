@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO-APPLICATION</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #121212;
+        color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    header {
+        background-color: #1f1f1f;
+        padding: 25px 0;
+        text-align: center;
+        font-size: 36px;
+        font-weight: 600;
+        color: #ffffff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+        letter-spacing: 1px;
+        animation: slideDown 0.6s ease-out;
+    }
+
+    #main {
+        margin-top: 50px;
+        text-align: center;
+        animation: fadeIn 1s ease-in;
+    }
+
+    #inp {
+        width: 60%;
+        max-width: 400px;
+        padding: 12px 15px;
+        font-size: 16px;
+        border: 1px solid #333;
+        background-color: #1f1f1f;
+        color: #fff;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        outline: none;
+        transition: 0.3s;
+    }
+
+    #inp:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+    }
+
+    button {
+        padding: 12px 20px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s ease;
+        margin-left: 10px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+    }
+
+    ul#tasklists {
+        list-style: none;
+        padding: 0;
+        max-width: 500px;
+        margin: 30px auto;
+        text-align: left;
+    }
+
+    ul#tasklists li {
+        background-color: #1f1f1f;
+        border: 1px solid #2e2e2e;
+        padding: 15px 20px;
+        margin-bottom: 12px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+        transition: transform 0.2s ease, opacity 0.3s ease;
+        animation: fadeSlideIn 0.4s ease forwards;
+    }
+
+    ul#tasklists li:hover {
+        transform: scale(1.02);
+    }
+
+    ul#tasklists li span {
+        flex: 1;
+        font-size: 17px;
+    }
+
+    ul#tasklists li button {
+        background-color: #dc3545;
+        border-radius: 6px;
+        padding: 8px 12px;
+        transition: background-color 0.3s ease, transform 0.2s;
+    }
+
+    ul#tasklists li button:hover {
+        background-color: #a71d2a;
+        transform: scale(1.1);
+    }
+
+    @media screen and (max-width: 600px) {
+        #inp {
+            width: 80%;
+        }
+
+        button {
+            margin-top: 10px;
+            width: 80%;
+        }
+
+        #main {
+            padding: 0 10px;
+        }
+    }
+
+    /* 🔥 Animations */
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeSlideIn {
+        0% {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideDown {
+        0% {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<body>
+    <header>
+        <div id="heading" style="text-align: center;font-size: 50px;">TODO APPLICATION</div>
+    </header>
+    <div id="main" style="text-align: center;">
+        <input type="text" id="inp" placeholder="Enter your todos" style="text-align: center;"></input>
+        <button onclick="addtask()" style="border-radius: 5px;">Add todo</button>
+        <ul id="tasklists"></ul>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/todos'
+        const todoselement = document.getElementById("inp")
+        const tasklist = document.getElementById("tasklists")
+        // This is the function for getting the tasks
+        async function gettask() {
+            try {
+                const response = await axios.get(API_URL)
+                const tasks = response.data
+                displaytasks(tasks);
+            } catch (error) {
+
+                console.log('An error occured', error)
+            }
+        }
+        // This displays all the tasks or todos 
+        function displaytasks(tasks) {
+            tasklist.innerHTML = ''
+            tasks.forEach(tasks => {
+                const listItem = document.createElement("li")
+                listItem.innerHTML = `      <span>${tasks.description}</span>
+                    <button onclick="deleteTask(${tasks.id})">Delete</button>`
+
+                tasklist.appendChild(listItem)
+            });
+        }
+        // this is the function for adding the todos
+        async function addtask() {
+            const tasktext = todoselement.value
+            if (tasktext.trim() === '') return;
+
+            try {
+                await axios.post(API_URL, { description: tasktext });
+                todoselement.value = '';
+                gettask();
+            } catch (error) {
+
+                console.log('Error adding task:', error);
+            }
+
+        }
+        //  this is the function for deleting the todos
+        async function deleteTask(id) {
+
+            try {
+                await axios.delete(`${API_URL}/${id}`);
+                gettask()
+            } catch (error) {
+                console.log('error occured', error)
+            }
+        }
+        // calling the main gettask function for displaying the avaliable todos
+        gettask()
+
+    </script>
+</body>
+
+</html>
